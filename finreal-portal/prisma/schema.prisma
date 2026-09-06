@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  HR_OFFICER
+  DEPARTMENT_HEAD
+  STAFF
+}
+
+enum AccountStatus {
+  PENDING_REVIEW
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum CivilStatus {
+  SINGLE
+  MARRIED
+  WIDOWED
+  SEPARATED
+  DIVORCED
+}
+
+enum EmploymentType {
+  REGULAR
+  PROBATIONARY
+  CONTRACTUAL
+  PART_TIME
+}
+
+model Branch {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  code        String       @unique
+  address     String?
+  departments Department[]
+  users       User[]
+  createdAt   DateTime     @default(now())
+}
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String
+  branchId  String
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  users     User[]
+  createdAt DateTime @default(now())
+
+  @@unique([branchId, name])
+}
+
+/// Central user record. Registration is created as PENDING_REVIEW and must be
+/// activated by an existing admin before the account can sign in, matching the
+/// "Authorized Access Only" posture of the Admin Portal.
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  passwordHash String
+  role         Role          @default(STAFF)
+  status       AccountStatus @default(PENDING_REVIEW)
+
+  // Step 2 - Personal Information
+  firstName     String
+  middleName    String?
+  lastName      String
+  dateOfBirth   DateTime
+  gender        Gender
+  civilStatus   CivilStatus
+  nationality   String      @default("Filipino")
+  contactNumber String
+  address       String
+
+  // Step 3 - Employment Details
+  employeeId     String?         @unique
+  position       String
+  employmentType EmploymentType
+  dateHired      DateTime?
+  branchId       String?
+  branch         Branch?         @relation(fields: [branchId], references: [id])
+  departmentId   String?
+  department     Department?     @relation(fields: [departmentId], references: [id])
+
+  // Step 4 - Statutory / Government IDs (PH)
+  sssNumber        String?
+  philHealthNumber String?
+  pagIbigNumber    String?
+  tinNumber        String?
+
+  // Step 5 - Emergency Contact
+  emergencyContactName     String
+  emergencyContactPhone    String
+  emergencyContactAddress  String?
+  emergencyContactRelation String
+
+  // Step 6 - Legal Consent (RA 10173)
+  dataPrivacyConsent Boolean   @default(false)
+  termsConsent       Boolean   @default(false)
+  consentedAt        DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
