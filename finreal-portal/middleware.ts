@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifySession } from "@/lib/auth";
+import { verifySession, SESSION_COOKIE, type SessionPayload } from "@/lib/auth";
 
 const PUBLIC_PATHS = ["/login", "/signup"];
-const SESSION_COOKIE = "finreal_session";
 
 /**
  * Route guard for the admin dashboard. Anything outside /login, /signup and
@@ -16,8 +15,20 @@ export function middleware(req: NextRequest) {
   if (isPublic) return NextResponse.next();
 
   const token = req.cookies.get(SESSION_COOKIE)?.value;
-  // In frontend-only mock mode, accept any non-empty cookie as valid session (Edge runtime cannot use jsonwebtoken)
-  const session = token ? (process.env.MOCK_API === "true" ? { sub: "mock", email: "mock@finreal.com", role: "STAFF", status: "ACTIVE" } as any : verifySession(token)) : null;
+  let session: SessionPayload | null = null;
+  if (token) {
+    if (process.env.MOCK_API === "true") {
+      // In mock mode, only accept JWT-looking tokens (3 parts), not arbitrary strings
+      if (token.split(".").length === 3) {
+        const verified = verifySession(token);
+        session = verified ?? { sub: "mock", email: "mock@finreal.com", role: "STAFF", status: "ACTIVE" } as SessionPayload;
+      } else {
+        session = null;
+      }
+    } else {
+      session = verifySession(token);
+    }
+  }
 
   if (!session) {
     const loginUrl = new URL("/login", req.url);

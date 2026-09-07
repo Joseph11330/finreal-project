@@ -46,8 +46,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   const session = getSessionFromCookies();
   if (!session) return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
 
-  if (process.env.MOCK_API === "true") { return NextResponse.json({ message: "Announcement updated (mock).", pinned: false }); }
-
   if (process.env.MOCK_API === "true") { return NextResponse.json({ message: "Announcement deleted (mock)." }); }
 
   const announcement = await prisma.announcement.findUnique({ where: { id: params.id } });

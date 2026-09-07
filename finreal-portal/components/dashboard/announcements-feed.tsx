@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { cn, initials } from "@/lib/utils";
 
 type Announcement = {
   id: string;
@@ -23,10 +23,6 @@ type Announcement = {
   createdAt: string;
   author: { name: string; title: string };
 };
-
-function initials(name: string) {
-  return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
-}
 
 function timeAgo(iso: string) {
   const diffMs = Date.now() - new Date(iso).getTime();

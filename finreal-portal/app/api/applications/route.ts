@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSessionFromCookies } from "@/lib/auth";
 
 /** GET /api/applications - list applications for the Forms queue. */
 export async function GET() {
@@ -11,6 +12,9 @@ export async function GET() {
       ],
     });
   }
+
+  const session = getSessionFromCookies();
+  if (!session) return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
 
   const applications = await prisma.application.findMany({
     include: {

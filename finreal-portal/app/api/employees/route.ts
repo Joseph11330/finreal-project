@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSessionFromCookies } from "@/lib/auth";
 import { employeeQuerySchema } from "@/lib/validations/application";
 
 /**
@@ -18,6 +19,10 @@ export async function GET(req: NextRequest) {
       ],
     });
   }
+
+  const session = getSessionFromCookies();
+  if (!session) return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  if (session.role !== "ADMIN" && session.role !== "SUPER_ADMIN") return NextResponse.json({ error: "Forbidden." }, { status: 403 });
 
   const parsed = employeeQuerySchema.safeParse(
     Object.fromEntries(req.nextUrl.searchParams)

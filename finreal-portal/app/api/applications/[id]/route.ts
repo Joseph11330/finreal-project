@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSessionFromCookies } from "@/lib/auth";
 
 /** GET /api/applications/:id - full document detail for the review modal. */
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -22,6 +23,9 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       employee: { name: "Maria Santos", employeeId: "EMP-001", department: "Finance", branch: "Olongapo Main Branch" },
     });
   }
+
+  const session = getSessionFromCookies();
+  if (!session) return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
 
   const application = await prisma.application.findUnique({
     where: { id: params.id },

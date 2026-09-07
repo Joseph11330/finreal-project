@@ -33,9 +33,7 @@ const AVATAR_COLORS = [
   "bg-rose-100 text-rose-700",
 ];
 
-function initials(name: string) {
-  return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
-}
+import { initials } from "@/lib/utils";
 function colorFor(id: string) {
   let sum = 0;
   for (const ch of id) sum += ch.charCodeAt(0);

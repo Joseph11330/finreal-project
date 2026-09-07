@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSessionFromCookies } from "@/lib/auth";
 
 /**
  * GET /api/calendar-entries?month=10&year=2024
@@ -15,6 +16,9 @@ export async function GET(req: NextRequest) {
       ],
     });
   }
+
+  const session = getSessionFromCookies();
+  if (!session) return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
 
   const month = Number(req.nextUrl.searchParams.get("month"));
   const year = Number(req.nextUrl.searchParams.get("year"));

@@ -2,15 +2,7 @@
 
 import { Search, Bell } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-function initials(name: string) {
-  return name
-    .split(" ")
-    .map((p) => p[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
+import { initials } from "@/lib/utils";
 
 export function Topbar({
   name,
