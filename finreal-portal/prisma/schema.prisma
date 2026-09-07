@@ -110,6 +110,63 @@ model Application {
   @@index([status])
 }
 
+enum CalendarEntryType {
+  EVENT
+  HOLIDAY
+}
+
+/// A dated item shown on the Event Calendar and October Schedule panels.
+/// Holidays are typically seeded/admin-managed; Events can be created from
+/// the "Add Event" option in the announcement composer.
+model CalendarEntry {
+  id          String            @id @default(cuid())
+  title       String
+  type        CalendarEntryType
+  date        DateTime
+  time        String? // display string, e.g. "2:00 PM"
+  location    String?
+  description String?
+  pinned      Boolean           @default(false)
+
+  createdById String?
+  createdBy   User?    @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  linkedAnnouncements Announcement[]
+
+  @@index([date])
+}
+
+/// A broadcast post on the Dashboard's "Publish Announcement" feed. Can
+/// optionally be pinned to the "Pinned Important" panel and can reference a
+/// linked CalendarEntry when it was published together with an event.
+model Announcement {
+  id      String @id @default(cuid())
+  subject String
+  body    String
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  pinned              Boolean  @default(false)
+  attachmentName      String?
+  attachmentSizeLabel String? // e.g. "2.4 MB"
+
+  linkedEventId String?
+  linkedEvent   CalendarEntry? @relation(fields: [linkedEventId], references: [id])
+
+  allowReactions Boolean @default(true)
+  allowComments  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pinned])
+  @@index([createdAt])
+}
+
 /// Central user record. Registration is created as PENDING_REVIEW and must be
 /// activated by an existing admin before the account can sign in, matching the
 /// "Authorized Access Only" posture of the Admin Portal.
@@ -163,6 +220,8 @@ model User {
 
   applicationsSubmitted Application[] @relation("ApplicationsSubmitted")
   applicationsReviewed  Application[] @relation("ApplicationsReviewed")
+  announcements         Announcement[]
+  calendarEntries       CalendarEntry[]
 
   @@index([status])
 }

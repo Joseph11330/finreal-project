@@ -38,19 +38,16 @@ export async function POST(req: NextRequest) {
 
   const data = parsed.data;
 
-  // ---------- Mock mode (frontend-only development) ----------
   if (process.env.MOCK_API === "true") {
     return NextResponse.json(
       {
-        message:
-          "Registration submitted (mock). Your credentials will be provisioned once an administrator reviews and activates your account.",
+        message: "Registration submitted (mock). Your credentials will be provisioned once an administrator reviews and activates your account.",
         user: { id: "mock-123", email: data.email, status: "PENDING_REVIEW" },
       },
       { status: 201 }
     );
   }
 
-  // ---------- Real DB path ----------
   const existing = await prisma.user.findUnique({ where: { email: data.email } });
   if (existing) {
     return NextResponse.json(

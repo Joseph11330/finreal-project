@@ -8,28 +8,17 @@ import { employeeQuerySchema } from "@/lib/validations/application";
  * over the employee roster.
  */
 export async function GET(req: NextRequest) {
-  // ---------- Mock mode (frontend-only development) ----------
   if (process.env.MOCK_API === "true") {
     return NextResponse.json({
       total: 1,
       page: 1,
       pageSize: 10,
       employees: [
-        {
-          id: "mock-1",
-          name: "Maria Santos",
-          email: "maria@finreal.com",
-          employeeId: "EMP-001",
-          branch: "Olongapo Main",
-          department: "Finance",
-          position: "Accountant",
-          status: "ACTIVE",
-        },
+        { id: "mock-1", name: "Maria Santos", email: "maria@finreal.com", employeeId: "EMP-001", branch: "Olongapo Main", department: "Finance", position: "Accountant", status: "ACTIVE" },
       ],
     });
   }
 
-  // ---------- Real DB path ----------
   const parsed = employeeQuerySchema.safeParse(
     Object.fromEntries(req.nextUrl.searchParams)
   );

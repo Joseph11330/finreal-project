@@ -27,9 +27,7 @@ export async function POST(req: NextRequest) {
 
   const { email, password } = parsed.data;
 
-  // ---------- Mock mode (frontend-only development) ----------
   if (process.env.MOCK_API === "true") {
-    // Accept any password in mock mode so the frontend login flow works end-to-end.
     const token = signSession({
       sub: "mock-123",
       email,
@@ -37,14 +35,12 @@ export async function POST(req: NextRequest) {
       status: "ACTIVE",
     });
     setSessionCookie(token);
-
     return NextResponse.json({
       message: "Signed in successfully (mock).",
       user: { id: "mock-123", email, role: "STAFF" },
     });
   }
 
-  // ---------- Real DB path ----------
   const user = await prisma.user.findUnique({ where: { email } });
   const genericError = { error: "Invalid email or password." };
 
