@@ -65,6 +65,51 @@ model Department {
   @@unique([branchId, name])
 }
 
+enum ApplicationType {
+  LATE_ARRIVAL_APPEAL
+  LEAVE_REQUEST
+  OVERTIME_REQUEST
+}
+
+enum ApplicationStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
+/// A submitted employee form (e.g. a Late Arrival Appeal) routed to a
+/// supervisor for approval. Rejection always requires a written reason,
+/// which is stored for the audit trail shown on the review document.
+model Application {
+  id           String            @id @default(cuid())
+  documentId   String            @unique // e.g. "LAA-2024-0524-001"
+  type         ApplicationType
+  status       ApplicationStatus @default(PENDING_REVIEW)
+
+  submittedById String
+  submittedBy   User   @relation("ApplicationsSubmitted", fields: [submittedById], references: [id])
+
+  submissionDate DateTime @default(now())
+
+  // Late Arrival Appeal specifics
+  appealType          String? // e.g. "Retroactive Appeal"
+  dateOfIncident       DateTime?
+  expectedArrivalTime  String? // "09:00 AM"
+  actualArrivalTime    String? // "09:42 AM"
+  totalDelayMinutes    Int?
+  incidentNotes        String?
+
+  reviewedById String?
+  reviewedBy   User?     @relation("ApplicationsReviewed", fields: [reviewedById], references: [id])
+  reviewedAt   DateTime?
+  rejectionReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
 /// Central user record. Registration is created as PENDING_REVIEW and must be
 /// activated by an existing admin before the account can sign in, matching the
 /// "Authorized Access Only" posture of the Admin Portal.
@@ -115,6 +160,9 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  applicationsSubmitted Application[] @relation("ApplicationsSubmitted")
+  applicationsReviewed  Application[] @relation("ApplicationsReviewed")
 
   @@index([status])
 }

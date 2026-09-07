@@ -46,3 +46,35 @@ PostgreSQL + Prisma - React Hook Form + Zod.
 `npx tsc --noEmit` passes cleanly. `npx prisma generate` could not be verified
 in this sandbox (no network access to Prisma's binary CDN) - run it yourself
 after `npm install`.
+
+## Admin Portal pages (added)
+
+- `app/(dashboard)/layout.tsx` - authenticated shell: `Sidebar` + `Topbar`, redirects to
+  `/login` if there's no valid session.
+- `app/(dashboard)/dashboard/page.tsx` - dashboard landing page (placeholder widgets).
+- `app/(dashboard)/profile/page.tsx` - the signed-in user's own employment record.
+- `app/(dashboard)/user-management/admins/page.tsx` - list of ADMIN/SUPER_ADMIN accounts.
+- `app/(dashboard)/user-management/user-directory/page.tsx` +
+  `components/dashboard/user-directory-table.tsx` - searchable/filterable/paginated employee
+  roster, backed by `GET /api/employees`, with CSV export of the current page.
+- `app/(dashboard)/forms/page.tsx` + `components/dashboard/forms-queue.tsx` - queue of
+  employee-submitted forms (e.g. Late Arrival Appeals), backed by `GET /api/applications`.
+- `components/documents/application-review-modal.tsx` - the printable review document
+  (Late Arrival Appeal Report) with Approve / Reject actions. **Rejecting always requires
+  a written reason** (min. 10 characters), stored on `Application.rejectionReason` for the
+  Supervisor audit trail.
+- `app/api/applications/*` - list, detail, approve, and reject route handlers.
+- `prisma/seed.ts` - seeds two branches, two departments, two users (an Admin and a
+  Department Head), and one sample Late Arrival Appeal so the new pages have data to show.
+  Run with `npx prisma db seed` after migrating.
+
+### Notes / assumptions
+- The "Supervisor" field shown on the printed appeal document isn't backed by a real
+  reporting-line relationship yet - `Department`/`User` would need a `headId`/manager
+  field to resolve that properly; the API currently omits it.
+- User Directory branch/department filters and the employee table both hit
+  `GET /api/employees`; wire up authorization (only admins should reach these pages) once
+  role-based route guards are added - `middleware.ts` currently only checks for *any*
+  valid session, not role.
+- `npx prisma generate` and `npx prisma migrate dev` could not be verified in this sandbox
+  (no network access to Prisma's binary CDN) - run them yourself after `npm install`.
