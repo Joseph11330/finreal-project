@@ -13,6 +13,8 @@ const badgeVariants = cva(
         active: "bg-emerald-100 text-emerald-700",
         suspended: "bg-slate-200 text-slate-700",
         neutral: "bg-secondary text-secondary-foreground",
+        event: "bg-orange-100 text-orange-700 border-orange-200",
+        holiday: "bg-rose-100 text-rose-700 border-rose-200",
       },
     },
     defaultVariants: { variant: "neutral" },

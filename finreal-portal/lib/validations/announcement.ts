@@ -3,18 +3,40 @@ import { z } from "zod";
 export const createAnnouncementSchema = z.object({
   subject: z.string().min(1, "Subject is required.").max(160, "Keep the subject under 160 characters."),
   body: z.string().min(1, "Write an update to share."),
+  // Backwards compat single attachment fields
   attachmentName: z.string().optional(),
   attachmentSizeLabel: z.string().optional(),
-  allowReactions: z.boolean().default(true),
-  allowComments: z.boolean().default(true),
-  // When present, an EVENT-type CalendarEntry is created and linked to this
-  // announcement (the "Add Event" toggle in the composer).
+  // New unified multi-attachment shape
+  attachments: z
+    .array(z.object({ name: z.string(), sizeLabel: z.string() }))
+    .max(5)
+    .optional(),
+  allowReactions: z.boolean().default(true).optional(),
+  allowComments: z.boolean().default(true).optional(),
+  // Event linked to announcement — supports both legacy single-date and new range shape
   event: z
     .object({
       title: z.string().min(1, "Event title is required."),
-      date: z.string().min(1, "Event date is required."),
+      // legacy
+      date: z.string().optional(),
       time: z.string().optional(),
+      // new range shape
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
+      startTime: z.string().optional(),
+      endTime: z.string().optional(),
       location: z.string().optional(),
+    })
+    .refine(
+      (v) => Boolean(v.date || v.startDate),
+      { message: "Event date is required.", path: ["startDate"] }
+    )
+    .optional(),
+  // Poll shape (new)
+  poll: z
+    .object({
+      question: z.string().min(1, "Poll question is required."),
+      options: z.array(z.string().min(1)).min(2).max(6),
     })
     .optional(),
 });

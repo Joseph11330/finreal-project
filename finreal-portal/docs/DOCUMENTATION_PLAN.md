@@ -57,7 +57,8 @@ finreal-portal/
 │   │   ├── ADR-004-mock-api-dual-mode.md
 │   │   ├── ADR-005-branch-department-hierarchy.md
 │   │   ├── ADR-006-zod-validation.md
-│   │   └── ADR-007-middleware-guard.md
+│   │   ├── ADR-007-middleware-guard.md
+│   │   └── ADR-008-mongodb-company-server.md
 │   ├── process/
 │   │   ├── TESTING.md                 # strategy + how to run
 │   │   └── CONVENTIONS.md             # naming, commits, PR template
@@ -88,7 +89,7 @@ finreal-portal/
 | 6 | `docs/setup/SETUP.md` | Step-by-step setup for MOCK_API and real DB modes | Dev (new joiner) | **Must** |
 | 7 | `docs/setup/DEPLOYMENT.md` | Build, env vars, hosting, pre-deploy checklist | Dev, PM | **Should** |
 | 8 | `CONTRIBUTING.md` (root) | Branch naming, commits, PR process, code style | Dev | **Must** |
-| 9 | `docs/decisions/DECISIONS.md` + `ADR-*.md` | Why we chose X over Y (7 decisions) — prevents re-litigation | Dev, auditor | **Must** |
+| 9 | `docs/decisions/DECISIONS.md` + `ADR-*.md` | Why we chose X over Y (8 decisions) — prevents re-litigation | Dev, auditor | **Must** |
 | 10 | `docs/process/TESTING.md` | What to test, with what, where tests live, coverage goal | Dev, QA | **Should** |
 | 11 | `docs/architecture/SECURITY.md` | Auth, JWT, PII/RA 10173, checklist before deploy | Dev, auditor | **Must** |
 | 12 | `docs/process/CONVENTIONS.md` | Naming, file structure, commits, PR template | Dev | **Should** |
@@ -424,7 +425,7 @@ Follow-up: ...
 ...
 ```
 
-### 7 ADRs to write (from decisions already made — evidence in code)
+### 8 ADRs to write (from decisions already made — evidence in code)
 
 | ADR | Title | Context | Decision | Consequence | File refs |
 |-----|-------|---------|----------|-------------|-----------|
@@ -435,12 +436,13 @@ Follow-up: ...
 | **005** | Branch → Department hierarchy (not flat) | Finreal has Olongapo Main + Subic Satellite + Head Office; departments belong to a branch; directory must filter by both. Flat list can't answer "Finance in Olongapo". | `Branch 1—* Department` (`@@unique([branchId,name])`), `User` FKs to both (`schema.prisma:47-66, 196-199`), query filters in `employees/route.ts:38-41`. | + Correct org model, filterable directory. − Seed must create branches first; UI Step 3 needs cascading selects. | `prisma/schema.prisma:47-66`, `app/api/employees/route.ts:38` |
 | **006** | Zod for validation (single source of truth) | Need consistent validation: client (wizard UX), server (route handlers), API docs. Manual checks diverge. | Define schemas in `lib/validations/*.ts` (`auth.ts:1-150`, `application.ts`, `announcement.ts`); use `safeParse` in handlers returning `422` with `fieldErrors`; share with `react-hook-form` via `@hookform/resolvers`. | + One shape everywhere; great errors. − Six signup schemas must stay merged in `fullSignupSchema` — test merges. | `lib/validations/auth.ts:5-150`, `lib/validations/application.ts:12`, `app/api/auth/register/route.ts:31` |
 | **007** | Middleware route guard + per-handler auth checks | Requirement: "Authorized Access Only" — unauthenticated users must not see dashboard/forms/directory; but `/api` needs its own checks (middleware skips `/api`). | `middleware.ts:4-40` redirects non-`/login|/signup|/api` to `/login?from=...`; every protected handler calls `getSessionFromCookies()` and checks `role` where needed (`employees/route.ts:25`). | + Defense in depth. − `middleware.ts` currently skips `/api` (line 14) — each handler must re-check; document this clearly + add note to `SECURITY.md`. Future: add role-based middleware for `/user-management/*`. | `middleware.ts:4-40`, `lib/auth.ts:57`, `app/api/employees/route.ts:23-25` |
+| **008** | MongoDB on Company Physical Server — Single-Node Replica Set (Docker, rs0, db push) | Finreal requires on-prem storage on company physical server; team chose MongoDB for flexibility with evolving announcement poll/attachments shape; Prisma requires replica set for transactions even for single node. | Host MongoDB as single-node replica set in Docker on company server: `mongo:7 --replSet rs0` + `rs.initiate()`, `DATABASE_URL="mongodb://host:27017/finreal?replicaSet=rs0&directConnection=true"`, `npx prisma db push` (not migrate); Next.js on Vercel or same server via Tailscale/VPN; nightly `mongodump --gzip` to separate disk, UPS, auth+firewall. | + Meets on-prem requirement; Prisma transactions work; Docker isolation; no Atlas cost; nightly dumps satisfy RA 10173 audit. − Own DBA duties (patching, backup checks); single-node data-loss risk without RAID/UPS; no managed PITR. Follow-up: convert schema.prisma to MongoDB, `prisma generate` + `db push`, backup cron in `SELF_HOSTING.md`. | `prisma/schema.prisma`, `lib/prisma.ts`, `.env DATABASE_URL`, `docs/decisions/ADR-008-mongodb-company-server.md` |
 
-> Also consider (Could, after these 7): ADR-008 "CSV export client-side vs server", ADR-009 "File upload stub vs S3".
+> Also consider (Could, after these 8): ADR-009 "CSV export client-side vs server", ADR-010 "File upload stub vs S3".
 
 | Section | What to create | Where | Template/Example | Owner | Effort |
 |---------|----------------|-------|------------------|-------|--------|
-| ADRs | 1 index + 7 ADR files from template | `docs/decisions/DECISIONS.md`, `docs/decisions/ADR-00*.md` | Table above → fill template per ADR | Architect / Tech Lead | 5–6 h (45 min each) |
+| ADRs | 1 index + 8 ADR files from template | `docs/decisions/DECISIONS.md`, `docs/decisions/ADR-00*.md` | Table above → fill template per ADR | Architect / Tech Lead | 6–7 h (45 min each) |
 
 ---
 
@@ -740,7 +742,7 @@ docs(api): add branches endpoint
 - [ ] `npm run dev` works from SETUP steps on a fresh clone (both modes tested)
 - [ ] `API.md` covers all 14 routes; curl examples run; Zod refs are line-accurate
 - [ ] ER diagram matches `prisma/schema.prisma` enums + FKs; state diagrams cover 409 cases
-- [ ] 7 ADRs merged; `DECISIONS.md` index up to date
+- [ ] 8 ADRs merged; `DECISIONS.md` index up to date
 - [ ] `SECURITY.md` checklist passes on staging deploy
 - [ ] PR template live; at least 1 PR used it to update docs
 

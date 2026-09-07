@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type Entry = { id: string; type: "EVENT" | "HOLIDAY"; date: string };
-type AnnouncementDay = { id: string; createdAt: string };
 
 const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const MONTH_NAMES = [
@@ -15,7 +14,6 @@ const MONTH_NAMES = [
 ];
 
 function buildMonthGrid(year: number, month: number) {
-  // month is 0-indexed here. Returns 6 rows x 7 cols of { date, inMonth }.
   const firstOfMonth = new Date(year, month, 1);
   const startOffset = firstOfMonth.getDay();
   const gridStart = new Date(year, month, 1 - startOffset);
@@ -37,27 +35,20 @@ export function EventCalendar() {
   const today = useMemo(() => new Date(), []);
   const [cursor, setCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [events, setEvents] = useState<Entry[]>([]);
-  const [announcementDays, setAnnouncementDays] = useState<AnnouncementDay[]>([]);
 
   const year = cursor.getFullYear();
-  const month = cursor.getMonth(); // 0-indexed
+  const month = cursor.getMonth();
 
   useEffect(() => {
     fetch(`/api/calendar-entries?month=${month + 1}&year=${year}`)
       .then((r) => r.json())
       .then((json) => setEvents(json.entries ?? []));
-    fetch("/api/announcements")
-      .then((r) => r.json())
-      .then((json) => setAnnouncementDays(json.announcements ?? []));
   }, [month, year]);
 
   const grid = useMemo(() => buildMonthGrid(year, month), [year, month]);
 
   function entriesOn(date: Date) {
     return events.filter((e) => sameDay(new Date(e.date), date));
-  }
-  function hasAnnouncementOn(date: Date) {
-    return announcementDays.some((a) => sameDay(new Date(a.createdAt), date));
   }
 
   return (
@@ -104,7 +95,6 @@ export function EventCalendar() {
           const dayEvents = entriesOn(date);
           const hasEvent = dayEvents.some((e) => e.type === "EVENT");
           const hasHoliday = dayEvents.some((e) => e.type === "HOLIDAY");
-          const hasAnnouncement = hasAnnouncementOn(date);
           const isToday = sameDay(date, today);
 
           return (
@@ -121,16 +111,13 @@ export function EventCalendar() {
               >
                 {date.getDate()}
               </span>
-              {hasAnnouncement && !hasEvent && !hasHoliday && (
-                <span className="mt-0.5 h-1 w-1 rounded-full bg-primary" />
-              )}
             </div>
           );
         })}
       </div>
 
       <div className="mt-3 flex items-center gap-4 border-t pt-3 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary" /> Announcement</span>
+        <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary" /> Event</span>
         <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-destructive" /> Holiday</span>
       </div>
     </div>

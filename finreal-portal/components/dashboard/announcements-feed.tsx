@@ -69,6 +69,7 @@ export const AnnouncementsFeed = forwardRef<AnnouncementsFeedHandle>(
     }
 
     async function remove(id: string) {
+      // TODO: replace with Dialog component
       if (!confirm("Delete this announcement?")) return;
       await fetch(`/api/announcements/${id}`, { method: "DELETE" });
       load();
@@ -77,7 +78,7 @@ export const AnnouncementsFeed = forwardRef<AnnouncementsFeedHandle>(
     return (
       <div>
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Published Announcements</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Published Announcements</h2>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>Sort by:</span>
             <Select value={sort} onValueChange={(v) => setSort(v as "newest" | "oldest")}>
@@ -105,7 +106,7 @@ export const AnnouncementsFeed = forwardRef<AnnouncementsFeedHandle>(
                     <p className="text-xs text-muted-foreground">{a.author.title} &bull; {timeAgo(a.createdAt)}</p>
                   </div>
                 </div>
-                {(
+{(
                   <div className="flex items-center gap-1 text-muted-foreground">
                     <button
                       type="button"
@@ -115,7 +116,7 @@ export const AnnouncementsFeed = forwardRef<AnnouncementsFeedHandle>(
                     >
                       <Pin className="h-4 w-4" />
                     </button>
-                    <button type="button" title="Edit" className="rounded p-1.5 hover:bg-muted">
+                    <button type="button" disabled className="rounded p-1.5 hover:bg-muted" title="Coming soon">
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button

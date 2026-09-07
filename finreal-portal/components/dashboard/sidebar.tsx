@@ -40,7 +40,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="flex h-screen w-56 shrink-0 flex-col border-r bg-card px-3 py-4">
+    <aside className="hidden h-screen w-56 shrink-0 flex-col border-r bg-card px-3 py-4 lg:flex">
       <div className="mb-6 flex items-center gap-2 px-2">
         <div className="flex h-8 w-8 items-center justify-center rounded bg-primary text-sm font-bold text-primary-foreground">
           F

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionFromCookies } from "@/lib/auth";
 
@@ -11,8 +11,12 @@ export async function GET(req: NextRequest) {
   if (process.env.MOCK_API === "true") {
     return NextResponse.json({
       entries: [
-        { id: "mock-ev-1", title: "Q3 Financial Review & Townhall", type: "EVENT", date: new Date().toISOString(), time: "2:00 PM", location: "Main Auditorium / Zoom", description: null, pinned: true },
-        { id: "mock-ev-2", title: "Halloween / Special Non-Working Holiday", type: "HOLIDAY", date: new Date().toISOString(), time: null, location: null, description: "Corporate offices closed worldwide.", pinned: false },
+        { id: "mock-ev-1", title: "Q3 Financial Review & Townhall", type: "EVENT", date: new Date(2026, 8, 7).toISOString(), time: "2:00 PM", location: "Main Auditorium / Zoom", description: null, pinned: true },
+        { id: "mock-ev-3", title: "Benefits Enrollment Deadline", type: "EVENT", date: new Date(2026, 8, 10).toISOString(), time: "5:00 PM", location: "HR Portal", description: "Last day for benefits enrollment.", pinned: true },
+        { id: "mock-ev-4", title: "New Hire Orientation", type: "EVENT", date: new Date(2026, 8, 12).toISOString(), time: "9:00 AM", location: "Training Room A", description: null, pinned: false },
+        { id: "mock-ev-5", title: "Q3 Town Hall - Main Event", type: "EVENT", date: new Date(2026, 8, 20).toISOString(), time: "2:00 PM", location: "Main Hall / Teams", description: null, pinned: true },
+        { id: "mock-ev-6", title: "Team Building: Subic Beach Day", type: "EVENT", date: new Date(2026, 8, 25).toISOString(), time: "7:00 AM", location: "Subic Bay", description: null, pinned: false },
+        { id: "mock-ev-2", title: "Halloween / Special Non-Working Holiday", type: "HOLIDAY", date: new Date(2026, 8, 30).toISOString(), time: null, location: null, description: "Corporate offices closed worldwide.", pinned: false },
       ],
     });
   }
