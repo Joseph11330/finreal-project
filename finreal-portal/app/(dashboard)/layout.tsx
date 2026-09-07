@@ -8,6 +8,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const session = getSessionFromCookies();
   if (!session) redirect("/login");
 
+  if (process.env.MOCK_API === "true") {
+    const fullName = "Alex Rivera";
+    const subtitle = "Finance \u2022 Admin";
+    return (
+      <div className="flex h-screen w-full overflow-hidden bg-secondary/30">
+        <Sidebar />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <Topbar name={fullName} subtitle={subtitle} />
+          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        </div>
+      </div>
+    );
+  }
+
   const user = await prisma.user.findUnique({
     where: { id: session.sub },
     include: { department: true },

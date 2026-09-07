@@ -16,7 +16,8 @@ export function middleware(req: NextRequest) {
   if (isPublic) return NextResponse.next();
 
   const token = req.cookies.get(SESSION_COOKIE)?.value;
-  const session = token ? verifySession(token) : null;
+  // In frontend-only mock mode, accept any non-empty cookie as valid session (Edge runtime cannot use jsonwebtoken)
+  const session = token ? (process.env.MOCK_API === "true" ? { sub: "mock", email: "mock@finreal.com", role: "STAFF", status: "ACTIVE" } as any : verifySession(token)) : null;
 
   if (!session) {
     const loginUrl = new URL("/login", req.url);
